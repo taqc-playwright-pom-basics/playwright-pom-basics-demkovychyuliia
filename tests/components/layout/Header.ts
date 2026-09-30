@@ -1,24 +1,24 @@
 import { type Locator, type Page } from '@playwright/test';
+
 import { BaseComponent } from '../../pages/base/BaseComponent';
+
 import { CityDropdown } from '../dropdowns/CityDropdown';
+
 import { TopMenu, type TopMenuItem } from './TopMenu';
 
-/**
- * TODO (студент): додати локатори/методи для guest-профілю в хедері
- * (`.user-profile` → «Увійти» / «Зареєструватися» → модалки auth).
- * Не треба окремого Component Object і кастомних фікстур — методи прямо тут
- * або в HomePage / BaseAppPage через успадкування.
- */
 export class Header extends BaseComponent {
   private readonly logoLink: Locator;
   private readonly topMenu: TopMenu;
   private readonly cityDropdown: CityDropdown;
+  private readonly userProfile: Locator;
 
   constructor(page: Page) {
     super(page, page.locator('header.ant-layout-header'));
+
     this.logoLink = page.locator('header .left-side-menu a').first();
     this.topMenu = new TopMenu(page);
     this.cityDropdown = new CityDropdown(page);
+    this.userProfile = page.locator('.user-profile');
   }
 
   async clickLogo(): Promise<void> {
@@ -31,6 +31,35 @@ export class Header extends BaseComponent {
 
   async selectCity(cityName: string): Promise<void> {
     await this.cityDropdown.selectCity(cityName);
+  }
+
+  async openProfileMenu(): Promise<void> {
+    await this.userProfile.click();
+
+    await this.getLoginMenuItem().waitFor({ state: 'visible' });
+    await this.getRegisterMenuItem().waitFor({ state: 'visible' });
+  }
+
+  async clickLogin(): Promise<void> {
+    await this.getLoginMenuItem().click();
+  }
+
+  async clickRegister(): Promise<void> {
+    await this.getRegisterMenuItem().click();
+  }
+
+  getLoginMenuItem(): Locator {
+    return this.page.getByRole('menuitem', {
+      name: 'Увійти',
+      exact: true,
+    });
+  }
+
+  getRegisterMenuItem(): Locator {
+    return this.page.getByRole('menuitem', {
+      name: 'Зареєструватися',
+      exact: true,
+    });
   }
 
   getCityDropdown(): CityDropdown {
